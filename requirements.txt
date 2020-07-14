@@ -1,0 +1,3 @@
+pyspin
+opencv-python
+pyqt5
