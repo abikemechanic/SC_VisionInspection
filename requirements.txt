@@ -1,3 +1,6 @@
-pyspin
+PySpin
 opencv-python
 pyqt5
+
+pywinusb~=0.4.2
+Pillow~=7.2.0
