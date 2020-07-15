@@ -198,7 +198,7 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 .idea/*
-.idea\*
+.idea
 *.autosave
 *.xml
 spinnaker_python-2.0.0.147-cp38-cp38-win32.whl
