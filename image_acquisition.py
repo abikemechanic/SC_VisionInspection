@@ -24,6 +24,7 @@ class Camera(QThread):
         self.last_image_capture_time = 0
         self.current_image_capture_time = 0
 
+        self.current_image = None
         self._save_image = False
         self.CSIDL_PICTURES = 295
         self._picture_save_directory = picture_directory
@@ -63,7 +64,6 @@ class Camera(QThread):
                     self.cam = self._setup_camera()
                     time.sleep(1)
                 else:
-                    # raise PySpin.SpinnakerException('failed to initialize camera')
                     print('unable to start camera, power cycle')
         except PySpin.SpinnakerException as ex:
             raise ex
@@ -78,22 +78,7 @@ class Camera(QThread):
                     continue
                 else:
                     img_data = img_result.GetNDArray()
-                    img = Image.fromarray(img_data)
-                    self.new_image_available.emit(img.toqpixmap())
-
-                    if self.save_image:
-                        if self.picture_save_directory == '':
-                            buf = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
-                            ctypes.windll.shell32.SHGetFolderPathW(0, self.CSIDL_PICTURES, 0, 0, buf)
-
-                            self.picture_save_directory = buf.value + '\\Robot_Pictures\\'
-
-                        img_file = self.picture_save_directory + '\\{0}_{1}.jpeg'.format(
-                            time.strftime('%d%m%Y', time.localtime()), time.strftime('%H%M%S', time.localtime())
-                        )
-                        print(img_file)
-                        img.save(img_file)
-                        self.save_image = False
+                    self.current_image = img_data
 
             except PySpin.SpinnakerException as ex:
                 self.cam.EndAcquisition()
@@ -105,7 +90,6 @@ class Camera(QThread):
         self.cam.GetNextImage()
         self.cam.EndAcquisition()
         self.cam.DeInit()
-        del self.cam
         self.wait_to_end = False
 
     def _setup_camera(self):
@@ -119,6 +103,7 @@ class Camera(QThread):
             cam.Init()
             self.node_map_tl_device = cam.GetTLDeviceNodeMap()
             self.node_map = cam.GetNodeMap()
+            # return cam
         elif len(cam_list) < 1:
             return None
         else:
@@ -162,7 +147,7 @@ class Camera(QThread):
             if not PySpin.IsAvailable(node_pixel_format) or not PySpin.IsWritable(node_pixel_format):
                 raise PySpin.SpinnakerException('unable to set pixel format to BayerRG8')
 
-            node_pixel_format_value = node_pixel_format.GetEntryByName('RGB8Packed')
+            node_pixel_format_value = node_pixel_format.GetEntryByName('BGR8')
             # node_pixel_format_value = node_pixel_format.GetEntryByName('Mono8')
             if not PySpin.IsAvailable(node_pixel_format_value) or not PySpin.IsReadable(node_pixel_format_value):
                 raise PySpin.SpinnakerException('unable to set pixel format to BayerRG8')
@@ -180,8 +165,8 @@ class Camera(QThread):
             if not PySpin.IsWritable(node_height) or not PySpin.IsWritable(node_width):
                 raise PySpin.SpinnakerException('height or width nodes not writable')
 
-            node_width_value = 2000
-            node_height_value = 1500
+            node_width_value = 1024
+            node_height_value = 700
             node_width.SetValue(node_width_value)
             node_height.SetValue(node_height_value)
 
@@ -195,8 +180,10 @@ class Camera(QThread):
             if not PySpin.IsAvailable(node_offset_y) or not PySpin.IsWritable(node_offset_y):
                 raise PySpin.SpinnakerException('y offset node not available')
 
-            node_offset_x_value = int(node_width_value / 2)
-            node_offset_y_value = int(node_height_value / 2)
+            # node_offset_x_value = int(node_width_value / 2)
+            # node_offset_y_value = int(node_height_value / 2)
+            node_offset_x_value = int((4000 - node_width_value) / 2)
+            node_offset_y_value = int((3000 - node_height_value) / 2)
             node_offset_x.SetValue(node_offset_x_value)
             node_offset_y.SetValue(node_offset_y_value)
 
