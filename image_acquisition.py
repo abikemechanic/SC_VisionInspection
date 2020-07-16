@@ -89,7 +89,6 @@ class Camera(QThread):
 
         self.cam.GetNextImage()
         self.cam.EndAcquisition()
-        self.cam.DeInit()
         self.wait_to_end = False
 
     def _setup_camera(self):
@@ -166,7 +165,7 @@ class Camera(QThread):
                 raise PySpin.SpinnakerException('height or width nodes not writable')
 
             node_width_value = 1024
-            node_height_value = 700
+            node_height_value = 760
             node_width.SetValue(node_width_value)
             node_height.SetValue(node_height_value)
 

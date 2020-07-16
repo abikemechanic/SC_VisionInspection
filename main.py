@@ -27,8 +27,10 @@ if __name__ == '__main__':
         box_list = boxes.split('\n')
         for b in box_list[1:]:
             b = b.split('\t')
-            print(b)
             if len(b) > 11:
+                t = b[-1].split()
+                if len(t) <= 0:
+                    continue
                 img = cv.rectangle(img, (int(b[6]), int(b[7])), (int(b[6]) + int(b[8]), int(b[7]) + int(b[9])),
                                    (0, 0, 255), 3)
 
