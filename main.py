@@ -1,10 +1,45 @@
 import PyQt5
 from PIL import Image
 import cv2 as cv
+import numpy as np
 import time
 import datetime
 import pytesseract
 from simple_pyspin import Camera
+
+
+def transform_image(image):
+    img_h = int(image.shape[0] * 0.35)
+    img_w = int(image.shape[1] * 0.35)
+
+    image = cv.resize(image, (img_w, img_h), interpolation=cv.INTER_AREA)
+
+    # blur image
+    image = cv.bilateralFilter(image, 3, 75, 75)
+
+    # threshold image
+    image = cv.adaptiveThreshold(image, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                 cv.THRESH_BINARY, 7, 4)
+
+    # filter horizontal lines
+    vert_size = 9
+    vert_struct = cv.getStructuringElement(cv.MORPH_RECT, (1, vert_size))
+    image = cv.erode(image, vert_struct)
+    image = cv.dilate(image, vert_struct)
+
+    # enlarge spring edges
+    kernel_size = 3
+    ker = np.ones((kernel_size, kernel_size), np.uint8)
+    image = cv.erode(image, ker, iterations=1)
+    # image = cv.dilate(image, ker, iterations=3)
+
+    return image
+
+
+def calculate_threshold(image):
+    max_pix = image.shape[0] * image.shape[1]
+    return (cv.countNonZero(image) / max_pix) * 100
+
 
 if __name__ == '__main__':
     # cam = Camera()
@@ -38,13 +73,26 @@ if __name__ == '__main__':
     vw = cv.VideoWriter('small_coil.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 32, (4000, 2000))
     vid_frames = 0
     record = False
+
+    threshold_level = 0
+    time_delta = 0
+    i = 0
+
     while 1:
         img = cam.get_array()
-        new_img_height = int(img.shape[0] * 0.3)
-        new_img_width = int(img.shape[1] * 0.3)
+        inspection_area = img[700:1000, 2800:2850]
 
-        img = cv.resize(img, (new_img_width, new_img_height), interpolation=cv.INTER_AREA)
-        # img = cv.Canny(img, 100, 101)
+        cv.rectangle(img, (2800, 700), (2900, 1000), (255, 255, 255), 3)
+
+        img_h = int(img.shape[0] * 0.35)
+        img_w = int(img.shape[1] * 0.35)
+
+        img = cv.resize(img, (img_w, img_h), interpolation=cv.INTER_AREA)
+        inspection_area = transform_image(inspection_area)
+
+        current_level = calculate_threshold(inspection_area)
+
+        # TESSERACT INFORMATION
 
         # boxes = pytesseract.image_to_data(img)
         # box_list = boxes.split('\n')
@@ -58,7 +106,8 @@ if __name__ == '__main__':
         #                            (0, 0, 255), 3)
 
         k = cv.waitKey(1)
-        cv.imshow('test image', img)
+        cv.imshow('raw image', img)
+        # cv.imshow('inspection image', inspection_area)
         if k == ord('q'):
             break
         elif k == ord('s'):
@@ -74,10 +123,25 @@ if __name__ == '__main__':
                 record = False
                 vw.release()
                 print('finished recording')
+        elif k == ord('l'):
+            threshold_level = current_level
 
+        if current_level <= threshold_level:
+            print('found spring')
+
+        i += 1
         image_time = time.time()
-        time_delta = image_time - last_image_time
+        time_delta += image_time - last_image_time
         last_image_time = image_time
+        if i > 100:
+            time_delta = time_delta / 100
+            print('fps: {:.3f}'.format(1 / time_delta))
+            i = 0
+
+        del img
 
     cam.close()
     cv.destroyAllWindows()
+
+
+
