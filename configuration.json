@@ -1,0 +1,18 @@
+{
+  "module":
+  [
+    {
+      "name": "ImageInspection",
+      "resize_factor": 0.35,
+      "inspection_area_points": [
+        [700, 2800],
+        [1000, 2850]
+      ],
+      "horizontal_filter_vertical_size": 5,
+      "noise_filter_kernel_size": 3,
+      "resized_image_width": 0,
+      "resized_image_height": 0
+    }
+  ]
+
+}
