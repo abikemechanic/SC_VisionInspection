@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 import cv2 as cv
 import numpy as np
 
@@ -17,16 +17,20 @@ class ImageInspector(QObject):
         self.raw_image = None
         self.final_image = None
         self._settings = settings
-        self._resize_factor = 1
+        self._resize_factor = .25
         self._resize_image_width = 0
         self._resize_image_height = 0
+        self._current_image = None
 
         self.camera = flir_camera_controller.CameraController()
-        self.camera.new_frame_available.connect(self.analyze_new_imagse)
+        self.camera.new_frame_available.connect(self.analyze_new_image)
         self.camera.camera_connection_event.connect(self.update_camera_status)
-        self.camera.start()
 
-        self.inspection_points = [(700, 2800), (1000, 2850)]
+        self.inspection_points = [(850, 2800), (1150, 2850)]
+
+        self.image_timer = QTimer()
+        self.image_timer.timeout.connect(self.analyze_new_image)
+        self.image_timer.start(5)
 
     # region Properties
 
@@ -40,23 +44,46 @@ class ImageInspector(QObject):
         self._resize_image_width = self.raw_image.shape[1] * value
         self._resize_image_height = self.raw_image.shape[0] * value
 
+    @property
+    def current_image(self):
+        return self._current_image
+
+    @current_image.setter
+    def current_image(self, value):
+        del self._current_image
+        self._current_image = value
+
     # endregion
 
+    def begin(self):
+        pass
+
+    def stop(self):
+        self.camera.close_camera()
+        self.image_timer.stop()
+
     def analyze_new_image(self):
+        del self.raw_image
         self.raw_image = self.camera.current_image
-        self.inspection_area = self.raw_image[self.inspection_points[0][0]: self.inspection_points[0][1],
-                                              self.inspection_points[1][0]: self.inspection_points[1][1]]
+
+        self.inspection_area = self.raw_image[self.inspection_points[0][0]: self.inspection_points[1][0],
+                                              self.inspection_points[0][1]: self.inspection_points[1][1]]
 
         self._analyze_inspection_area()
 
         _img = cv.copyTo(self.raw_image, None)
-        _img[self.inspection_points[0][0]: self.inspection_points[0][1],
-             self.inspection_points[1][0]: self.inspection_points[1][1]] = self.inspection_area
+        _img[self.inspection_points[0][0]: self.inspection_points[1][0],
+             self.inspection_points[0][1]: self.inspection_points[1][1]] = self.inspection_area
 
-        # set final image
+        _img_w = int(_img.shape[1] * self._resize_factor)
+        _img_h = int(_img.shape[0] * self._resize_factor)
+        _img = cv.resize(_img, (_img_w, _img_h), interpolation=cv.INTER_AREA)
+
+        self.current_image = _img
+        self.new_image_available.emit()
 
     def update_camera_status(self, status):
-        print(status)
+        pass
 
     def _analyze_inspection_area(self):
         img = cv.bilateralFilter(self.inspection_area, 3, 75, 75)

@@ -18,40 +18,37 @@ class CameraController(QThread):
         self.cam.init()
 
         self.cam.Width = 4000
-        self.cam.Height = 2000
+        self.cam.Height = 3000
         self.cam.OffsetX = 0
-        self.cam.OffsetY = 250
+        self.cam.OffsetY = 0
 
         self.cam.GainAuto = 'Off'
         self.cam.Gain = 9
         self.cam.ExposureAuto = 'Off'
         self.cam.ExposureTime = 10000
 
+        self.cam.start()
+
     @property
     def current_image(self):
-        img = self._current_image
         self._current_image = None
-        return img
+        return self.cam.get_array()
 
     @current_image.setter
     def current_image(self, value):
-        self._current_image = value
-        # self.new_frame_available.emit()
+        self._current_image = self.cam.get_array()
 
-    def run(self):
-        self.cam.start()
-
-        while 1:
-            self.current_image = self.cam.get_array()
-            self.new_frame_available.emit(self.current_image)
-            time.sleep(1/100)
-
-            if self.end_camera:
-                self.close_camera()
-                break
+    # def run(self):
+    #     self.cam.start()
+    #
+    #     while 1:
+    #         del self._current_image
+    #         self.current_image = self.cam.get_array()
+    #         # self.new_frame_available.emit(self.current_image)
 
     def get_next_image(self):
         return self.cam.get_array()
 
     def close_camera(self):
         self.cam.close()
+        del self.cam

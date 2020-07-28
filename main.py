@@ -15,37 +15,37 @@ sys.exit(app.exec_())
 
 
 
-def transform_image(image):
-    # img_h = int(image.shape[0] * 0.35)
-    # img_w = int(image.shape[1] * 0.35)
-    #
-    # image = cv.resize(image, (img_w, img_h), interpolation=cv.INTER_AREA)
-
-    # blur image
-    image = cv.bilateralFilter(image, 3, 75, 75)
-
-    # threshold image
-    image = cv.adaptiveThreshold(image, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                 cv.THRESH_BINARY, 7, 4)
-
-    # filter horizontal lines
-    vert_size = 5
-    vert_struct = cv.getStructuringElement(cv.MORPH_RECT, (1, vert_size))
-    image = cv.erode(image, vert_struct)
-    image = cv.dilate(image, vert_struct)
-
-    # enlarge spring edges
-    kernel_size = 3
-    ker = np.ones((kernel_size, kernel_size), np.uint8)
-    image = cv.erode(image, ker, iterations=1)
-    # image = cv.dilate(image, ker, iterations=3)
-
-    return image
-
-
-def calculate_threshold(image):
-    max_pix = image.shape[0] * image.shape[1]
-    return (cv.countNonZero(image) / max_pix) * 100
+# def transform_image(image):
+#     # img_h = int(image.shape[0] * 0.35)
+#     # img_w = int(image.shape[1] * 0.35)
+#     #
+#     # image = cv.resize(image, (img_w, img_h), interpolation=cv.INTER_AREA)
+#
+#     # blur image
+#     image = cv.bilateralFilter(image, 3, 75, 75)
+#
+#     # threshold image
+#     image = cv.adaptiveThreshold(image, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,
+#                                  cv.THRESH_BINARY, 7, 4)
+#
+#     # filter horizontal lines
+#     vert_size = 5
+#     vert_struct = cv.getStructuringElement(cv.MORPH_RECT, (1, vert_size))
+#     image = cv.erode(image, vert_struct)
+#     image = cv.dilate(image, vert_struct)
+#
+#     # enlarge spring edges
+#     kernel_size = 3
+#     ker = np.ones((kernel_size, kernel_size), np.uint8)
+#     image = cv.erode(image, ker, iterations=1)
+#     # image = cv.dilate(image, ker, iterations=3)
+#
+#     return image
+#
+#
+# def calculate_threshold(image):
+#     max_pix = image.shape[0] * image.shape[1]
+#     return (cv.countNonZero(image) / max_pix) * 100
 
 
 # if __name__ == '__main__':
