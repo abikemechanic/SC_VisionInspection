@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSignal, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, QObject, QTimer, QSettings
 import cv2 as cv
 import numpy as np
 
@@ -13,6 +13,8 @@ class ImageInspector(QObject):
     def __init__(self, settings: dict):
         super(ImageInspector, self).__init__()
 
+        self.image_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
+
         self.inspection_area = None
         self.raw_image = None
         self.final_image = None
@@ -21,6 +23,7 @@ class ImageInspector(QObject):
         self._resize_image_width = 0
         self._resize_image_height = 0
         self._current_image = None
+        self._vert_size = 7
 
         self.camera = flir_camera_controller.CameraController()
         self.camera.new_frame_available.connect(self.analyze_new_image)
@@ -36,13 +39,11 @@ class ImageInspector(QObject):
 
     @property
     def resize_factor(self):
-        return self._resize_factor
+        return self.image_settings.value('image/resize_factor', .25)
 
     @resize_factor.setter
     def resize_factor(self, value):
-        self._resize_factor = value
-        self._resize_image_width = self.raw_image.shape[1] * value
-        self._resize_image_height = self.raw_image.shape[0] * value
+        self.image_settings.setValue('image/resize_factor', float(value))
 
     @property
     def current_image(self):
@@ -52,6 +53,15 @@ class ImageInspector(QObject):
     def current_image(self, value):
         del self._current_image
         self._current_image = value
+
+    @property
+    def vert_size(self):
+        return self._vert_size
+
+    @vert_size.setter
+    def vert_size(self, value):
+        self._vert_size = value
+        self.image_settings.setValue('image/vert_size', int(value))
 
     # endregion
 
@@ -87,11 +97,10 @@ class ImageInspector(QObject):
 
     def _analyze_inspection_area(self):
         img = cv.bilateralFilter(self.inspection_area, 3, 75, 75)
-        img = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 7, 4)
+        img = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 3, 4)
 
         # filter horizontal lines
-        vert_size = 5
-        vert_struct = cv.getStructuringElement(cv.MORPH_RECT, (1, vert_size))
+        vert_struct = cv.getStructuringElement(cv.MORPH_RECT, (1, self.vert_size))
         img = cv.erode(img, vert_struct)
         img = cv.dilate(img, vert_struct)
 

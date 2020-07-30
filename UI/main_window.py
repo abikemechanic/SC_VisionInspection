@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets, uic, QtGui
+from PyQt5.QtCore import QSettings
 from PyQt5.QtGui import QKeyEvent, QPixmap, QCloseEvent, QShowEvent
-from PyQt5.QtWidgets import QLabel, QMainWindow
+from PyQt5.QtWidgets import QLabel, QMainWindow, QSpinBox
 from PIL import Image
 import numpy as np
 
@@ -16,10 +17,15 @@ class MainWindow(QMainWindow):
 
         self.lbl_VideoFeed: QLabel = self.lbl_VideoFeed
         self.lbl_InspectionFeed: QLabel = self.lbl_InspectionFeed
+        self.spinBox_ThresholdValue: QSpinBox = self.spinBox_ThresholdValue
+        self.spinBox_VertSize: QSpinBox = self.spinBox_VertSize
+        self.spinBox_VertSize.valueChanged.connect(self.update_vert_size)
 
         self.camera = Camera(None)
         self.camera.new_image_available.connect(self.new_image_available)
         self.camera.begin()
+
+        self.app_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
 
     def closeEvent(self, a0):
         self.camera.stop()
@@ -33,3 +39,6 @@ class MainWindow(QMainWindow):
 
     def update_camera_connection(self, val):
         pass
+
+    def update_vert_size(self, value):
+        self.camera.vert_size = value
