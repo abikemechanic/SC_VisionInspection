@@ -105,7 +105,21 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox_ThresholdValue"/>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Morphology Kernel Size</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinBox_ThresholdValue">
+          <property name="minimum">
+           <number>3</number>
+          </property>
+          <property name="singleStep">
+           <number>2</number>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="Line" name="line">
@@ -127,7 +141,10 @@
            <number>3</number>
           </property>
           <property name="maximum">
-           <number>15</number>
+           <number>300</number>
+          </property>
+          <property name="singleStep">
+           <number>2</number>
           </property>
          </widget>
         </item>

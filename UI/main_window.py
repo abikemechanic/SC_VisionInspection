@@ -14,18 +14,22 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         uic.loadUi('UI/mainwindow.ui', self)
+        self.app_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
 
         self.lbl_VideoFeed: QLabel = self.lbl_VideoFeed
         self.lbl_InspectionFeed: QLabel = self.lbl_InspectionFeed
-        self.spinBox_ThresholdValue: QSpinBox = self.spinBox_ThresholdValue
-        self.spinBox_VertSize: QSpinBox = self.spinBox_VertSize
-        self.spinBox_VertSize.valueChanged.connect(self.update_vert_size)
 
         self.camera = Camera(None)
         self.camera.new_image_available.connect(self.new_image_available)
         self.camera.begin()
 
-        self.app_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
+        self.spinBox_ThresholdValue: QSpinBox = self.spinBox_ThresholdValue
+        self.spinBox_ThresholdValue.valueChanged.connect(self.update_morphology_kernel)
+        self.spinBox_ThresholdValue.setValue(self.app_settings.value('image/morph', 3))
+
+        self.spinBox_VertSize: QSpinBox = self.spinBox_VertSize
+        self.spinBox_VertSize.valueChanged.connect(self.update_vert_size)
+        self.spinBox_VertSize.setValue(self.app_settings.value('image/vert_size', 7))
 
     def closeEvent(self, a0):
         self.camera.stop()
@@ -42,3 +46,6 @@ class MainWindow(QMainWindow):
 
     def update_vert_size(self, value):
         self.camera.vert_size = value
+
+    def update_morphology_kernel(self, value):
+        self.camera.morph_kernel_size = value

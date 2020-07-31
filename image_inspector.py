@@ -23,7 +23,9 @@ class ImageInspector(QObject):
         self._resize_image_width = 0
         self._resize_image_height = 0
         self._current_image = None
-        self._vert_size = 7
+        self._vert_size = self.image_settings.value('image/vert_size', 7)
+        self._threshold_value = self.image_settings.value('image/threshold_limit', 20)
+        self._morph_kernel_size = self.image_settings.value('image/morph_kernel_size', 9)
 
         self.camera = flir_camera_controller.CameraController()
         self.camera.new_frame_available.connect(self.analyze_new_image)
@@ -62,6 +64,15 @@ class ImageInspector(QObject):
     def vert_size(self, value):
         self._vert_size = value
         self.image_settings.setValue('image/vert_size', int(value))
+
+    @property
+    def morph_kernel_size(self):
+        return self._morph_kernel_size
+
+    @morph_kernel_size.setter
+    def morph_kernel_size(self, value):
+        self._morph_kernel_size = value
+        self.image_settings.setValue('image/morph_kernel_size', int(value))
 
     # endregion
 
@@ -105,7 +116,7 @@ class ImageInspector(QObject):
         img = cv.dilate(img, vert_struct)
 
         # noise reduction
-        kernel_size = 3
+        kernel_size = self.morph_kernel_size
         ker = np.ones((kernel_size, kernel_size), np.uint8)
 
         self.inspection_area = img
