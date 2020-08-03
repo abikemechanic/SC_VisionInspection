@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, uic, QtGui
 from PyQt5.QtCore import QSettings
 from PyQt5.QtGui import QKeyEvent, QPixmap, QCloseEvent, QShowEvent
-from PyQt5.QtWidgets import QLabel, QMainWindow, QSpinBox
+from PyQt5.QtWidgets import QLabel, QMainWindow, QSpinBox, QPushButton
 from PIL import Image
 import numpy as np
 
@@ -31,6 +31,9 @@ class MainWindow(QMainWindow):
         self.spinBox_VertSize.valueChanged.connect(self.update_vert_size)
         self.spinBox_VertSize.setValue(self.app_settings.value('image/vert_size', 7))
 
+        self.btn_TrainThreshold: QPushButton = self.btn_TrainThreshold
+        self.btn_TrainThreshold.clicked.connect(self.update_threshold_value)
+
     def closeEvent(self, a0):
         self.camera.stop()
 
@@ -49,3 +52,6 @@ class MainWindow(QMainWindow):
 
     def update_morphology_kernel(self, value):
         self.camera.morph_kernel_size = value
+
+    def update_threshold_value(self):
+        self.camera.set_threshold_value()

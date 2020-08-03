@@ -7,6 +7,7 @@ import flir_camera_controller
 
 class ImageInspector(QObject):
     new_image_available: pyqtSignal = pyqtSignal()
+    inspection_alert: pyqtSignal = pyqtSignal(bool)
 
     settings_file = 'image_inspection_settings.json'
 
@@ -25,6 +26,7 @@ class ImageInspector(QObject):
         self._current_image = None
         self._vert_size = self.image_settings.value('image/vert_size', 7)
         self._threshold_value = self.image_settings.value('image/threshold_limit', 20)
+        self.current_threshold_value = 0
         self._morph_kernel_size = self.image_settings.value('image/morph_kernel_size', 9)
 
         self.camera = flir_camera_controller.CameraController()
@@ -74,6 +76,15 @@ class ImageInspector(QObject):
         self._morph_kernel_size = value
         self.image_settings.setValue('image/morph_kernel_size', int(value))
 
+    @property
+    def threshold_value(self):
+        return self._threshold_value
+
+    @threshold_value.setter
+    def threshold_value(self, value):
+        self._threshold_value = value
+        self.image_settings.setValue('image/threshold_value', int(value))
+
     # endregion
 
     def begin(self):
@@ -103,6 +114,9 @@ class ImageInspector(QObject):
         self.current_image = _img
         self.new_image_available.emit()
 
+        if self.current_threshold_value > self.threshold_value:
+            self.inspection_alert.emit(True)
+
     def update_camera_status(self, status):
         pass
 
@@ -118,5 +132,13 @@ class ImageInspector(QObject):
         # noise reduction
         kernel_size = self.morph_kernel_size
         ker = np.ones((kernel_size, kernel_size), np.uint8)
+        img = cv.erode(img, ker, iterations=2)
+        img = cv.dilate(img, ker, iterations=2)
 
         self.inspection_area = img
+
+        max_pix = img.shape[0] * img.shape[1]
+        self.current_threshold_value = cv.countNonZero(img) / max_pix
+
+    def set_threshold_value(self):
+        pass
