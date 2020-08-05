@@ -27,7 +27,8 @@ class ImageInspector(QObject):
         self._vert_size = self.image_settings.value('image/vert_size', 7)
         self._threshold_value = self.image_settings.value('image/threshold_limit', 20)
         self.current_threshold_value = 0
-        self._morph_kernel_size = self.image_settings.value('image/morph_kernel_size', 9)
+        self._morph_kernel_size = self.image_settings.value('image/morph_kernel_size', 5)
+        self._inspection_alert_value = False
 
         self.camera = flir_camera_controller.CameraController()
         self.camera.new_frame_available.connect(self.analyze_new_image)
@@ -85,6 +86,16 @@ class ImageInspector(QObject):
         self._threshold_value = value
         self.image_settings.setValue('image/threshold_value', int(value))
 
+    @property
+    def inspection_alert_value(self):
+        return self._inspection_alert_value
+
+    @inspection_alert_value.setter
+    def inspection_alert_value(self, value):
+        if value != self.inspection_alert_value:
+            self._inspection_alert_value = value
+            self.inspection_alert.emit(value)
+
     # endregion
 
     def begin(self):
@@ -104,8 +115,11 @@ class ImageInspector(QObject):
         self._analyze_inspection_area()
 
         _img = cv.copyTo(self.raw_image, None)
-        _img[self.inspection_points[0][0]: self.inspection_points[1][0],
-             self.inspection_points[0][1]: self.inspection_points[1][1]] = self.inspection_area
+        rect_pt_1 = (self.inspection_points[0][1], self.inspection_points[0][0])
+        rect_pt_2 = (self.inspection_points[1][1], self.inspection_points[1][0])
+        _img = cv.rectangle(_img, rect_pt_1, rect_pt_2, (0, 255, 0), 3)
+        # _img[self.inspection_points[0][0]: self.inspection_points[1][0],
+        #      self.inspection_points[0][1]: self.inspection_points[1][1]] = self.inspection_area
 
         _img_w = int(_img.shape[1] * self._resize_factor)
         _img_h = int(_img.shape[0] * self._resize_factor)
@@ -114,8 +128,11 @@ class ImageInspector(QObject):
         self.current_image = _img
         self.new_image_available.emit()
 
-        if self.current_threshold_value > self.threshold_value:
-            self.inspection_alert.emit(True)
+        if self.current_threshold_value > self.threshold_value * 0.8:
+            # check for 80% of threshold value to indicate spring found
+            self.inspection_alert_value = True
+        else:
+            self.inspection_alert_value = False
 
     def update_camera_status(self, status):
         pass
@@ -138,7 +155,7 @@ class ImageInspector(QObject):
         self.inspection_area = img
 
         max_pix = img.shape[0] * img.shape[1]
-        self.current_threshold_value = cv.countNonZero(img) / max_pix
+        self.current_threshold_value = 1 - (cv.countNonZero(img) / max_pix)
 
     def set_threshold_value(self):
-        pass
+        self.threshold_value = self.current_threshold_value

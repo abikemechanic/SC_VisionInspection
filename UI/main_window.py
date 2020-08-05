@@ -21,18 +21,25 @@ class MainWindow(QMainWindow):
 
         self.camera = Camera(None)
         self.camera.new_image_available.connect(self.new_image_available)
+        self.camera.inspection_alert.connect(self.inspection_alert)
         self.camera.begin()
 
         self.spinBox_ThresholdValue: QSpinBox = self.spinBox_ThresholdValue
         self.spinBox_ThresholdValue.valueChanged.connect(self.update_morphology_kernel)
-        self.spinBox_ThresholdValue.setValue(self.app_settings.value('image/morph', 3))
 
         self.spinBox_VertSize: QSpinBox = self.spinBox_VertSize
         self.spinBox_VertSize.valueChanged.connect(self.update_vert_size)
-        self.spinBox_VertSize.setValue(self.app_settings.value('image/vert_size', 7))
 
         self.btn_TrainThreshold: QPushButton = self.btn_TrainThreshold
         self.btn_TrainThreshold.clicked.connect(self.update_threshold_value)
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        self.spinBox_ThresholdValue.setValue(self.app_settings.value('image/morph_kernel_size'))
+        self.spinBox_VertSize.setValue(self.app_settings.value('image/vert_size'))
+
+        self.lbl_VideoFeed.mousePressEvent = self.lbl_VideoFeed_clicked
 
     def closeEvent(self, a0):
         self.camera.stop()
@@ -55,3 +62,9 @@ class MainWindow(QMainWindow):
 
     def update_threshold_value(self):
         self.camera.set_threshold_value()
+
+    def inspection_alert(self, signal):
+        print('spring found: ' + str(signal))
+
+    def lbl_VideoFeed_clicked(self, event):
+        pass
