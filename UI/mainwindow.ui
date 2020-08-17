@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1030</width>
+    <width>1054</width>
     <height>600</height>
    </rect>
   </property>
@@ -28,12 +28,12 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QTabWidget" name="tab_MainWIndow">
+     <widget class="QTabWidget" name="tab_Inspections">
       <property name="tabPosition">
        <enum>QTabWidget::North</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_CameraView">
        <attribute name="title">
@@ -75,7 +75,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
               <item>
-               <widget class="QLabel" name="label_3">
+               <widget class="QLabel" name="label_Notifier">
                 <property name="text">
                  <string>Spring Found: </string>
                 </property>
@@ -104,7 +104,7 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="btn_SetInspectionArea">
               <property name="text">
                <string>Set Inspection Area</string>
               </property>
@@ -161,7 +161,7 @@
                <number>3</number>
               </property>
               <property name="maximum">
-               <number>300</number>
+               <number>11</number>
               </property>
               <property name="singleStep">
                <number>2</number>
@@ -170,6 +170,54 @@
             </item>
             <item>
              <widget class="Line" name="line_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Threshold Level</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinBox_InspectionThresholdValue">
+              <property name="minimum">
+               <number>3</number>
+              </property>
+              <property name="maximum">
+               <number>254</number>
+              </property>
+              <property name="singleStep">
+               <number>2</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Current Threshold Level</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ThresholdLevel">
+              <property name="text">
+               <string>Current Threshold Level</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_4">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -188,25 +236,6 @@
               </property>
              </spacer>
             </item>
-            <item>
-             <widget class="QLabel" name="lbl_InspectionFeed">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>50</width>
-                <height>20</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
          </layout>
@@ -218,6 +247,42 @@
         <string>Chart View</string>
        </attribute>
       </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Inspections</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
+           <widget class="QLabel" name="lbl_InspectionFeed">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="contextMenuPolicy">
+             <enum>Qt::NoContextMenu</enum>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="text">
+             <string>Inspection View</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -227,7 +292,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1030</width>
+     <width>1054</width>
      <height>21</height>
     </rect>
    </property>

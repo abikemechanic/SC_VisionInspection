@@ -31,6 +31,9 @@ class CameraController(QThread):
         self.cam.ExposureAuto = 'Off'
         self.cam.ExposureTime = 10000
 
+        if 'Bayer' in self.cam.PixelFormat:
+            self.cam.PixelFormat = 'BGR8'
+
         self.cam.start()
 
     # region Properties
