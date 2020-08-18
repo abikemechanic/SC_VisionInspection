@@ -7,14 +7,19 @@ import numpy as np
 
 # from flir_camera_controller import CameraController as Camera
 from image_inspector import ImageInspector as Camera
+from json_settings import JsonSettings
 
 
+# noinspection PyUnresolvedReferences
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
         uic.loadUi('UI/mainwindow.ui', self)
         self.app_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
+
+        self.settings = JsonSettings()
+        self.settings.file_name = 'SC_Vision_Inspection_Settings.json'
 
         self.lbl_VideoFeed: QLabel = self.lbl_VideoFeed
         self.lbl_InspectionFeed: QLabel = self.lbl_InspectionFeed
@@ -45,8 +50,6 @@ class MainWindow(QMainWindow):
         self.setup_ui()
 
     def setup_ui(self):
-        self.app_settings.setValue('image/vert_size', 3)
-
         self.spinBox_ThresholdValue.setValue(self.app_settings.value('image/morph_kernel_size'))
         self.spinBox_VertSize.setValue(self.app_settings.value('image/vert_size'))
         self.spinBox_InspectionThresholdValue.setValue(self.app_settings.value('image/inspection_threshold_value'))
@@ -60,8 +63,9 @@ class MainWindow(QMainWindow):
         pil_img = Image.fromarray(self.camera.current_image)
         self.lbl_VideoFeed.setPixmap(pil_img.toqpixmap())
 
-        pil_insp = Image.fromarray(self.camera.detection_img)
-        self.lbl_InspectionFeed.setPixmap(pil_insp.toqpixmap().scaledToWidth(self.lbl_InspectionFeed.width()))
+        pil_insp = Image.fromarray(self.camera.inspection_area)
+        if pil_insp is not None:
+            self.lbl_InspectionFeed.setPixmap(pil_insp.toqpixmap().scaledToWidth(self.lbl_InspectionFeed.width()))
 
         self.label_ThresholdLevel.setText('{:4.2f}'.format(self.camera.current_threshold_value * 100.0))
 

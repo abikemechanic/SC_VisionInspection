@@ -3,18 +3,18 @@ import cv2 as cv
 import numpy as np
 
 import flir_camera_controller
+from json_settings import JsonSettings
 
 
 class ImageInspector(QObject):
     new_image_available: pyqtSignal = pyqtSignal()
     inspection_alert: pyqtSignal = pyqtSignal(bool)
 
-    settings_file = 'image_inspection_settings.json'
-
     def __init__(self, settings: dict):
         super(ImageInspector, self).__init__()
 
         self.image_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
+        self.settings = JsonSettings()
 
         self.inspection_area = None
         self.raw_image = None
@@ -26,28 +26,31 @@ class ImageInspector(QObject):
         self._resize_image_width = 0
         self._resize_image_height = 0
         self._current_image = None
-        self._vert_size = self.image_settings.value('image/vert_size', 7)
-        self._inspection_threshold_value = self.image_settings.value('image/inspection_threshold_value', 120)
-        self._threshold_value = self.image_settings.value('image/threshold_value', 20)
+        # self._vert_size = self.image_settings.value('image/vert_size', 7)
+        self._vert_size = self.settings.get_value('spring_finder.vert_size', 7)
+        # self._inspection_threshold_value = self.image_settings.value('image/inspection_threshold_value', 120)
+        self._inspection_threshold_value = self.settings.get_value('spring_finder.inspection_threshold_value', 120)
+        # self._threshold_value = self.image_settings.value('image/threshold_value', 20)
+        self._threshold_value = self.settings.get_value('spring_finder.threshold_value', 20)
         self.current_threshold_value = 0
-        self._morph_kernel_size = self.image_settings.value('image/morph_kernel_size', 5)
+        # self._morph_kernel_size = self.image_settings.value('image/morph_kernel_size', 5)
+        self._morph_kernel_size = self.settings.get_value('spring_finder.morph_kernel_size', 5)
         self._inspection_alert_value = False
         self._setting_inspection_area = False
-
-        # self.image_settings.remove('image/inspection_pt1_x')
-        # self.image_settings.remove('image/inspection_pt1_y')
-        # self.image_settings.remove('image/inspection_pt2_x')
-        # self.image_settings.remove('image/inspection_pt2_y')
 
         self._temp_x1 = 0
         self._temp_x2 = 0
         self._temp_y1 = 0
         self._temp_y2 = 0
 
-        self._inspection_pt1_x = self.image_settings.value('image/inspection_pt1_x', int(310 * 4))
-        self._inspection_pt1_y = self.image_settings.value('image/inspection_pt1_y', int(470 * 4))
-        self._inspection_pt2_x = self.image_settings.value('image/inspection_pt2_x', int(340 * 4))
-        self._inspection_pt2_y = self.image_settings.value('image/inspection_pt2_y', int(540 * 4))
+        # self._inspection_pt1_x = self.image_settings.value('image/inspection_pt1_x', int(310 * 4))
+        # self._inspection_pt1_y = self.image_settings.value('image/inspection_pt1_y', int(470 * 4))
+        # self._inspection_pt2_x = self.image_settings.value('image/inspection_pt2_x', int(340 * 4))
+        # self._inspection_pt2_y = self.image_settings.value('image/inspection_pt2_y', int(540 * 4))
+        self._inspection_pt1_x = self.settings.get_value('spring_finder.inspection_pt1_x', int(310 * 4))
+        self._inspection_pt1_y = self.settings.get_value('spring_finder.inspection_pt1_y', int(470 * 4))
+        self._inspection_pt2_x = self.settings.get_value('spring_finder.inspection_pt2_x', int(340 * 4))
+        self._inspection_pt2_y = self.settings.get_value('spring_finder.inspection_pt2_y', int(540 * 4))
         self._setting_point = 0
 
         self._inspection_points = [(self._inspection_pt1_x, self._inspection_pt1_y),
@@ -65,11 +68,13 @@ class ImageInspector(QObject):
 
     @property
     def resize_factor(self):
-        return self.image_settings.value('image/resize_factor', .25)
+        # return self.image_settings.value('image/resize_factor', .25)
+        return self.settings.get_value('spring_finder/resize_factor', .25)
 
     @resize_factor.setter
     def resize_factor(self, value):
-        self.image_settings.setValue('image/resize_factor', float(value))
+        # self.image_settings.setValue('image/resize_factor', float(value))
+        self.settings.set_value('spring_finder.resize_factor', float(value))
 
     @property
     def current_image(self):
@@ -87,7 +92,8 @@ class ImageInspector(QObject):
     @vert_size.setter
     def vert_size(self, value):
         self._vert_size = value
-        self.image_settings.setValue('image/vert_size', int(value))
+        # self.image_settings.setValue('image/vert_size', int(value))
+        self.settings.set_value('spring_finder.vert_size', int(value))
 
     @property
     def inspection_threshold_value(self):
@@ -96,7 +102,8 @@ class ImageInspector(QObject):
     @inspection_threshold_value.setter
     def inspection_threshold_value(self, value):
         self._inspection_threshold_value = value
-        self.image_settings.setValue('image/inspection_threshold_value', int(value))
+        # self.image_settings.setValue('image/inspection_threshold_value', int(value))
+        self.settings.set_value('spring_finder.inspection_threshold_value', int(value))
 
     @property
     def morph_kernel_size(self):
@@ -105,7 +112,8 @@ class ImageInspector(QObject):
     @morph_kernel_size.setter
     def morph_kernel_size(self, value):
         self._morph_kernel_size = value
-        self.image_settings.setValue('image/morph_kernel_size', int(value))
+        # self.image_settings.setValue('image/morph_kernel_size', int(value))
+        self.settings.set_value('spring_finder.morph_kernel_size', int(value))
 
     @property
     def threshold_value(self):
@@ -114,7 +122,8 @@ class ImageInspector(QObject):
     @threshold_value.setter
     def threshold_value(self, value):
         self._threshold_value = value
-        self.image_settings.setValue('image/threshold_value', float(value))
+        # self.image_settings.setValue('image/threshold_value', float(value))
+        self.settings.set_value('spring_finder.threshold_value', float(value))
 
     @property
     def inspection_alert_value(self):
@@ -173,8 +182,6 @@ class ImageInspector(QObject):
     def _analyze_inspection_area(self):
         img = cv.cvtColor(self.inspection_area, cv.COLOR_BGR2GRAY)
         img = cv.bilateralFilter(img, 3, 75, 75)
-        # img = cv.adaptiveThreshold(img, self.inspection_threshold_value, cv.ADAPTIVE_THRESH_GAUSSIAN_C,
-        #                            cv.THRESH_BINARY, max(self.vert_size, 3), 7)
 
         r, img = cv.threshold(img, self.inspection_threshold_value, 255, cv.THRESH_BINARY_INV)
 
@@ -184,13 +191,13 @@ class ImageInspector(QObject):
         img = cv.erode(img, ker, iterations=2)
         img = cv.dilate(img, ker, iterations=2)
 
-        # self.inspection_area = img
-
         max_pix = img.shape[0] * img.shape[1]
-        # self.current_threshold_value = 1 - (cv.countNonZero(img) / max_pix)
         self.current_threshold_value = (cv.countNonZero(img) / max_pix)
         self.detection_img = img
-        self._measure_spring_end()
+
+        # move measurement to trigger when spring found
+        if self.current_threshold_value > (float(self.threshold_value) * 0.9):
+            self._measure_spring_end()
 
     def _measure_spring_end(self):
         raw_img = self.inspection_area
@@ -199,20 +206,41 @@ class ImageInspector(QObject):
         r, img = cv.threshold(img, self.inspection_threshold_value, 255, cv.THRESH_BINARY_INV)
         cnt, h = cv.findContours(img, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
 
+        if len(cnt) < 1:
+            self.inspection_area = raw_img
+            self.measurement_img = img
+            return
+
         max_area, max_cont = 0, None
 
         for c in cnt:
             if cv.contourArea(c) > max_area:
                 max_area = cv.contourArea(c)
                 max_cont = c
-            # r = cv.minAreaRect(c)
-            # b = cv.boxPoints(r)
-            # b = np.int0(b)
-            # cv.drawContours(raw_img, [c], 0, (0, 0, 255), 1)
-            # cv.drawContours(img, [c], 0, (0, 0, 255), 1)
 
-        cv.drawContours(raw_img, [max_cont], 0, (0, 0, 0), 1)
-        cv.drawContours(img, [max_cont], 0, (0, 0, 0), 1)
+        try:
+            cv.drawContours(raw_img, [max_cont], 0, (0, 0, 0), 1)
+            cv.drawContours(img, [max_cont], 0, (0, 0, 0), 1)
+
+            max_x_point = max_cont[0][0][0]
+            min_x_point = max_cont[0][0][0]
+            y_max = raw_img.shape[0]
+
+            for pt in max_cont:
+                pt_x = pt[0][0]
+                if pt_x > max_x_point:
+                    max_x_point = pt_x
+                elif pt_x <= min_x_point:
+                    min_x_point = pt_x
+
+            print(f'max x: {max_x_point}, min x: {min_x_point}')
+
+            cv.line(raw_img, (max_x_point, 0), (max_x_point, y_max), (255, 0, 255), 2)
+            cv.line(raw_img, (min_x_point, 0), (min_x_point, y_max), (0, 255, 0), 2)
+            cv.line(raw_img, (max_x_point, int(y_max/2)), (min_x_point, int(y_max/2)), (255, 0, 0), 2)
+
+        except (cv.error, SystemError):
+            print('error')
 
         self.inspection_area = raw_img
         self.measurement_img = img
@@ -260,4 +288,3 @@ class ImageInspector(QObject):
             self._temp_y1 = 0
             self._temp_y2 = 0
             self._setting_inspection_area = False
-

@@ -2,6 +2,8 @@ from simple_pyspin import Camera
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QSettings
 import time
 
+from json_settings import JsonSettings
+
 
 class CameraController(QThread):
     new_frame_available = pyqtSignal(object)
@@ -17,6 +19,7 @@ class CameraController(QThread):
         self._current_image = None
 
         self.cam_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
+        self.settings = JsonSettings()
 
         # Camera setup
         self.cam.init()
@@ -49,19 +52,23 @@ class CameraController(QThread):
 
     @property
     def cam_width(self):
-        return self.cam_settings.value('cam/width', 4000)
+        # return self.cam_settings.value('cam/width', 4000)
+        return self.settings.get_value('camera.width', 4000)
 
     @cam_width.setter
     def cam_width(self, value):
-        self.cam_settings.setValue('cam/width', int(value))
+        # self.cam_settings.setValue('cam/width', int(value))
+        self.settings.set_value('camera.width', int(value))
 
     @property
     def cam_height(self):
-        return self.cam_settings.value('cam/height', 2000)
+        # return self.cam_settings.value('cam/height', 2000)
+        self.settings.get_value('camera.height', 2000)
 
     @cam_height.setter
     def cam_height(self, value):
-        self.cam_settings.setValue('cam/height', int(value))
+        # self.cam_settings.setValue('cam/height', int(value))
+        self.settings.set_value('camera.height', int(value))
 
     # endregion
 
