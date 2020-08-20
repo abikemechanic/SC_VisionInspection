@@ -23,11 +23,11 @@ class CameraController(QThread):
 
         # Camera setup
         self.cam.init()
-
-        self.cam.Width = self.cam_width
-        self.cam.Height = self.cam_height
-        self.cam.OffsetX = 0
-        self.cam.OffsetY = 0
+        #
+        # self.cam.Width = self.cam_width
+        # self.cam.Height = self.cam_height
+        # self.cam.OffsetX = 0
+        # self.cam.OffsetY = 0
 
         self.cam.GainAuto = 'Off'
         self.cam.Gain = 9

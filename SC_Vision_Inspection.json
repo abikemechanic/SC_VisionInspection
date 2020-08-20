@@ -1,0 +1,12 @@
+{
+    "spring_finder": {
+        "inspection_threshold_value": "178",
+        "threshold_value": "20",
+        "morph_kernel_size": "5",
+        "vert_size": "7",
+        "inspection_pt1_x": "1200",
+        "inspection_pt1_y": "1120",
+        "inspection_pt2_x": "1444",
+        "inspection_pt2_y": "1764"
+    }
+}

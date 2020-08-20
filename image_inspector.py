@@ -26,14 +26,10 @@ class ImageInspector(QObject):
         self._resize_image_width = 0
         self._resize_image_height = 0
         self._current_image = None
-        # self._vert_size = self.image_settings.value('image/vert_size', 7)
         self._vert_size = self.settings.get_value('spring_finder.vert_size', 7)
-        # self._inspection_threshold_value = self.image_settings.value('image/inspection_threshold_value', 120)
         self._inspection_threshold_value = self.settings.get_value('spring_finder.inspection_threshold_value', 120)
-        # self._threshold_value = self.image_settings.value('image/threshold_value', 20)
         self._threshold_value = self.settings.get_value('spring_finder.threshold_value', 20)
         self.current_threshold_value = 0
-        # self._morph_kernel_size = self.image_settings.value('image/morph_kernel_size', 5)
         self._morph_kernel_size = self.settings.get_value('spring_finder.morph_kernel_size', 5)
         self._inspection_alert_value = False
         self._setting_inspection_area = False
@@ -42,19 +38,15 @@ class ImageInspector(QObject):
         self._temp_x2 = 0
         self._temp_y1 = 0
         self._temp_y2 = 0
-
-        # self._inspection_pt1_x = self.image_settings.value('image/inspection_pt1_x', int(310 * 4))
-        # self._inspection_pt1_y = self.image_settings.value('image/inspection_pt1_y', int(470 * 4))
-        # self._inspection_pt2_x = self.image_settings.value('image/inspection_pt2_x', int(340 * 4))
-        # self._inspection_pt2_y = self.image_settings.value('image/inspection_pt2_y', int(540 * 4))
+        self.inspection_pt1_x = 0
+        self.inspection_pt1_y = 0
+        self.inspection_pt2_x = 0
+        self.inspection_pt2_y = 0
         self._inspection_pt1_x = self.settings.get_value('spring_finder.inspection_pt1_x', int(310 * 4))
         self._inspection_pt1_y = self.settings.get_value('spring_finder.inspection_pt1_y', int(470 * 4))
         self._inspection_pt2_x = self.settings.get_value('spring_finder.inspection_pt2_x', int(340 * 4))
         self._inspection_pt2_y = self.settings.get_value('spring_finder.inspection_pt2_y', int(540 * 4))
         self._setting_point = 0
-
-        self._inspection_points = [(self._inspection_pt1_x, self._inspection_pt1_y),
-                                   (self._inspection_pt2_x, self._inspection_pt2_y)]
 
         self.camera = flir_camera_controller.CameraController()
         self.camera.new_frame_available.connect(self.analyze_new_image)
@@ -140,6 +132,42 @@ class ImageInspector(QObject):
         return [(self._inspection_pt1_x, self._inspection_pt1_y),
                 (self._inspection_pt2_x, self._inspection_pt2_y)]
 
+    @property
+    def inspection_pt1_x(self):
+        return self._inspection_pt1_x
+
+    @inspection_pt1_x.setter
+    def inspection_pt1_x(self, value):
+        self._inspection_pt1_x = value
+        self.settings.set_value('spring_finder.inspection_pt1_x', int(value))
+
+    @property
+    def inspection_pt1_y(self):
+        return self._inspection_pt1_y
+
+    @inspection_pt1_y.setter
+    def inspection_pt1_y(self, value):
+        self._inspection_pt1_y = value
+        self.settings.set_value('spring_finder.inspection_pt1_y', value)
+
+    @property
+    def inspection_pt2_x(self):
+        return self._inspection_pt2_x
+
+    @inspection_pt2_x.setter
+    def inspection_pt2_x(self, value):
+        self._inspection_pt2_x = value
+        self.settings.set_value('spring_finder.inspection_pt2_x', value)
+
+    @property
+    def inspection_pt2_y(self):
+        return self._inspection_pt2_y
+
+    @inspection_pt2_y.setter
+    def inspection_pt2_y(self, value):
+        self._inspection_pt2_y = value
+        self.settings.set_value('spring_finder.inspection_pt2_y', value)
+
     # endregion
 
     def begin(self):
@@ -153,14 +181,14 @@ class ImageInspector(QObject):
         del self.raw_image
         self.raw_image = self.camera.current_image
 
-        self.inspection_area = self.raw_image[self.inspection_points[0][0]: self.inspection_points[1][0],
-                                              self.inspection_points[0][1]: self.inspection_points[1][1]]
+        self.inspection_area = self.raw_image[self.inspection_pt1_x: self.inspection_pt2_x,
+                                              self.inspection_pt1_y: self.inspection_pt2_y]
 
         self._analyze_inspection_area()
 
         _img = cv.copyTo(self.raw_image, None)
-        rect_pt_1 = (self.inspection_points[0][1], self.inspection_points[0][0])
-        rect_pt_2 = (self.inspection_points[1][1], self.inspection_points[1][0])
+        rect_pt_1 = (self.inspection_pt2_y, self.inspection_pt2_x)
+        rect_pt_2 = (self.inspection_pt1_y, self.inspection_pt1_x)
         _img = cv.rectangle(_img, rect_pt_1, rect_pt_2, (0, 255, 0), 3)
 
         _img_w = int(_img.shape[1] * self._resize_factor)
@@ -180,7 +208,14 @@ class ImageInspector(QObject):
         pass
 
     def _analyze_inspection_area(self):
-        img = cv.cvtColor(self.inspection_area, cv.COLOR_BGR2GRAY)
+        try:
+            img = self.inspection_area
+            img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            # cv.imshow('t', img)
+            # cv.waitKey(0)
+        except cv.error:
+            return
+
         img = cv.bilateralFilter(img, 3, 75, 75)
 
         r, img = cv.threshold(img, self.inspection_threshold_value, 255, cv.THRESH_BINARY_INV)
@@ -272,15 +307,22 @@ class ImageInspector(QObject):
             self._temp_x2 = int(y * (1 / self._resize_factor))
             self._temp_y2 = int(x * (1 / self._resize_factor))
 
-            self._inspection_pt1_x = min(self._temp_x1, self._temp_x2)
-            self._inspection_pt2_x = max(self._temp_x1, self._temp_x2)
-            self._inspection_pt1_y = min(self._temp_y1, self._temp_y2)
-            self._inspection_pt2_y = max(self._temp_y1, self._temp_y2)
+            self.inspection_pt1_x = min(self._temp_x1, self._temp_x2)
+            self.inspection_pt2_x = max(self._temp_x1, self._temp_x2)
+            self.inspection_pt1_y = min(self._temp_y1, self._temp_y2)
+            self.inspection_pt2_y = max(self._temp_y1, self._temp_y2)
 
-            self.image_settings.setValue('image/inspection_pt1_x', self._inspection_pt1_x)
-            self.image_settings.setValue('image/inspection_pt1_y', self._inspection_pt1_y)
-            self.image_settings.setValue('image/inspection_pt2_x', self._inspection_pt2_x)
-            self.image_settings.setValue('image/inspection_pt2_y', self._inspection_pt2_y)
+            # self.image_settings.setValue('image/inspection_pt1_x', self._inspection_pt1_x)
+            # self.image_settings.setValue('image/inspection_pt1_y', self._inspection_pt1_y)
+            # self.image_settings.setValue('image/inspection_pt2_x', self._inspection_pt2_x)
+            # self.image_settings.setValue('image/inspection_pt2_y', self._inspection_pt2_y)
+        #     self.settings.set_value('spring_finder.inspection_pt1_x', self._inspection_pt1_x)
+        #     self.settings.set_value('spring_finder.inspection_pt1_y', self._inspection_pt1_y)
+        #     self.settings.set_value('')
+        # self._inspection_pt1_x = self.settings.get_value('spring_finder.inspection_pt1_x', int(310 * 4))
+        # self._inspection_pt1_y = self.settings.get_value('spring_finder.inspection_pt1_y', int(470 * 4))
+        # self._inspection_pt2_x = self.settings.get_value('spring_finder.inspection_pt2_x', int(340 * 4))
+        # self._inspection_pt2_y = self.settings.get_value('spring_finder.inspection_pt2_y', int(540 * 4))
 
             self._setting_point = 0
             self._temp_x1 = 0

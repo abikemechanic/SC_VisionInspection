@@ -33,7 +33,7 @@
        <enum>QTabWidget::North</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_CameraView">
        <attribute name="title">
@@ -257,15 +257,15 @@
           <item row="0" column="0">
            <widget class="QLabel" name="lbl_InspectionFeed">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>50</width>
-              <height>20</height>
+              <width>400</width>
+              <height>400</height>
              </size>
             </property>
             <property name="contextMenuPolicy">

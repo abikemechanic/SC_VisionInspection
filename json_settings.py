@@ -4,7 +4,7 @@ import os
 
 class JsonSettings:
     file_path = ''
-    file_name = 'SC_Vision_Inspection'
+    file_name = 'SC_Vision_Inspection.json'
 
     def _load_file(self):
         try:
@@ -23,7 +23,7 @@ class JsonSettings:
 
     def _save_file(self, data):
         file = open(self.file_path + self.file_name, 'w')
-        json.dump(data, file)
+        json.dump(data, file, indent=4)
         file.close()
 
     def pretty_print(self):
