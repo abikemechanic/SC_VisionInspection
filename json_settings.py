@@ -33,15 +33,29 @@ class JsonSettings:
         file.close()
 
     def get_value(self, identifier: str, default_value: object):
+        path = identifier.split('.')
         data = self._load_file()
+
         if data is None:
             return default_value
 
-        if identifier not in data.keys():
+        data_keys = data.keys()
+        raw_data = data
+
+        for p in path[:-1]:
+            if p in data_keys:
+                data = data[p]
+                data_keys = data.keys()
+            else:
+                self.set_value(identifier, default_value)
+                return default_value
+
+        p = path[-1]
+        if p in data_keys:
+            return data[p]
+        else:
             self.set_value(identifier, default_value)
             return default_value
-
-        return data[identifier]
 
     def set_value(self, identifier: str, value: object):
         path = identifier.split('.')

@@ -26,11 +26,11 @@ class ImageInspector(QObject):
         self._resize_image_width = 0
         self._resize_image_height = 0
         self._current_image = None
-        self._vert_size = self.settings.get_value('spring_finder.vert_size', 7)
-        self._inspection_threshold_value = self.settings.get_value('spring_finder.inspection_threshold_value', 120)
-        self._threshold_value = self.settings.get_value('spring_finder.threshold_value', 20)
+        self._vert_size = int(self.settings.get_value('spring_finder.vert_size', 7))
+        self._inspection_threshold_value = int(self.settings.get_value('spring_finder.inspection_threshold_value', 120))
+        self._threshold_value = float(self.settings.get_value('spring_finder.threshold_value', .20))
         self.current_threshold_value = 0
-        self._morph_kernel_size = self.settings.get_value('spring_finder.morph_kernel_size', 5)
+        self._morph_kernel_size = int(self.settings.get_value('spring_finder.morph_kernel_size', 5))
         self._inspection_alert_value = False
         self._setting_inspection_area = False
 
@@ -38,14 +38,14 @@ class ImageInspector(QObject):
         self._temp_x2 = 0
         self._temp_y1 = 0
         self._temp_y2 = 0
-        self.inspection_pt1_x = 0
-        self.inspection_pt1_y = 0
-        self.inspection_pt2_x = 0
-        self.inspection_pt2_y = 0
-        self._inspection_pt1_x = self.settings.get_value('spring_finder.inspection_pt1_x', int(310 * 4))
-        self._inspection_pt1_y = self.settings.get_value('spring_finder.inspection_pt1_y', int(470 * 4))
-        self._inspection_pt2_x = self.settings.get_value('spring_finder.inspection_pt2_x', int(340 * 4))
-        self._inspection_pt2_y = self.settings.get_value('spring_finder.inspection_pt2_y', int(540 * 4))
+        self._inspection_pt1_x = int(self.settings.get_value('spring_finder.inspection_pt1_x', int(310 * 4)))
+        self._inspection_pt1_y = int(self.settings.get_value('spring_finder.inspection_pt1_y', int(470 * 4)))
+        self._inspection_pt2_x = int(self.settings.get_value('spring_finder.inspection_pt2_x', int(340 * 4)))
+        self._inspection_pt2_y = int(self.settings.get_value('spring_finder.inspection_pt2_y', int(540 * 4)))
+        self.inspection_pt1_x = self._inspection_pt1_x
+        self.inspection_pt1_y = self._inspection_pt1_y
+        self.inspection_pt2_x = self._inspection_pt2_x
+        self.inspection_pt2_y = self._inspection_pt2_y
         self._setting_point = 0
 
         self.camera = flir_camera_controller.CameraController()
@@ -60,12 +60,10 @@ class ImageInspector(QObject):
 
     @property
     def resize_factor(self):
-        # return self.image_settings.value('image/resize_factor', .25)
         return self.settings.get_value('spring_finder/resize_factor', .25)
 
     @resize_factor.setter
     def resize_factor(self, value):
-        # self.image_settings.setValue('image/resize_factor', float(value))
         self.settings.set_value('spring_finder.resize_factor', float(value))
 
     @property
@@ -84,7 +82,6 @@ class ImageInspector(QObject):
     @vert_size.setter
     def vert_size(self, value):
         self._vert_size = value
-        # self.image_settings.setValue('image/vert_size', int(value))
         self.settings.set_value('spring_finder.vert_size', int(value))
 
     @property
@@ -94,7 +91,6 @@ class ImageInspector(QObject):
     @inspection_threshold_value.setter
     def inspection_threshold_value(self, value):
         self._inspection_threshold_value = value
-        # self.image_settings.setValue('image/inspection_threshold_value', int(value))
         self.settings.set_value('spring_finder.inspection_threshold_value', int(value))
 
     @property
@@ -104,7 +100,6 @@ class ImageInspector(QObject):
     @morph_kernel_size.setter
     def morph_kernel_size(self, value):
         self._morph_kernel_size = value
-        # self.image_settings.setValue('image/morph_kernel_size', int(value))
         self.settings.set_value('spring_finder.morph_kernel_size', int(value))
 
     @property
@@ -114,7 +109,6 @@ class ImageInspector(QObject):
     @threshold_value.setter
     def threshold_value(self, value):
         self._threshold_value = value
-        # self.image_settings.setValue('image/threshold_value', float(value))
         self.settings.set_value('spring_finder.threshold_value', float(value))
 
     @property

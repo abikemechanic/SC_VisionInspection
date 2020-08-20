@@ -33,7 +33,7 @@
        <enum>QTabWidget::North</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_CameraView">
        <attribute name="title">
@@ -264,7 +264,13 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>400</width>
+              <width>600</width>
+              <height>400</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>600</width>
               <height>400</height>
              </size>
             </property>
@@ -272,7 +278,7 @@
              <enum>Qt::NoContextMenu</enum>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::NoFrame</enum>
             </property>
             <property name="text">
              <string>Inspection View</string>
