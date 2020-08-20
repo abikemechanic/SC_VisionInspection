@@ -1,12 +1,10 @@
-from PyQt5 import QtWidgets, uic, QtGui
+from PyQt5 import uic
 from PyQt5.QtCore import QSettings
-from PyQt5.QtGui import QKeyEvent, QPixmap, QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QLabel, QMainWindow, QSpinBox, QPushButton
 from PIL import Image
-import numpy as np
 
 # from flir_camera_controller import CameraController as Camera
-from image_inspector import ImageInspector as Camera
+from image_utils.image_inspector import ImageInspector as Camera
 from json_settings import JsonSettings
 
 
@@ -26,6 +24,7 @@ class MainWindow(QMainWindow):
 
         self.camera = Camera(None)
         self.camera.new_image_available.connect(self.new_image_available)
+        self.camera.new_measurement_available.connect(self.on_new_measurement)
         self.camera.inspection_alert.connect(self.inspection_alert)
         self.camera.begin()
 
@@ -46,6 +45,7 @@ class MainWindow(QMainWindow):
 
         self.label_ThresholdLevel: QLabel = self.label_ThresholdLevel
         self.label_Notifier: QLabel = self.label_Notifier
+        self.label_SpringDiameter: QLabel = self.label_SpringDiameter
 
         self.setup_ui()
 
@@ -63,11 +63,18 @@ class MainWindow(QMainWindow):
         pil_img = Image.fromarray(self.camera.current_image)
         self.lbl_VideoFeed.setPixmap(pil_img.toqpixmap())
 
-        pil_insp = Image.fromarray(self.camera.inspection_area)
-        if pil_insp is not None:
-            self.lbl_InspectionFeed.setPixmap(pil_insp.toqpixmap().scaledToWidth(self.lbl_InspectionFeed.width()))
+        if self.camera.measurement_img is not None:
+            pil_insp = Image.fromarray(self.camera.measurement_img)
+            if pil_insp is not None:
+                self.lbl_InspectionFeed.setPixmap(pil_insp.toqpixmap().scaledToWidth(self.lbl_InspectionFeed.width()))
 
         self.label_ThresholdLevel.setText('{:4.2f}'.format(self.camera.current_threshold_value * 100.0))
+
+    def on_new_measurement(self):
+        pil_meas = Image.fromarray(self.camera.measurement_img)
+        self.lbl_InspectionFeed.setPixmap(pil_meas.toqpixmap().scaledToWidth(self.lbl_InspectionFeed.width()))
+
+        self.label_SpringDiameter.setText('{:4.5f}'.format(self.camera.spring_diameter))
 
     def update_camera_connection(self, val):
         pass

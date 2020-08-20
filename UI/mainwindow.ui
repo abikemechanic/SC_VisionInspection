@@ -33,7 +33,7 @@
        <enum>QTabWidget::North</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_CameraView">
        <attribute name="title">
@@ -114,6 +114,13 @@
              <widget class="QPushButton" name="btn_TrainThreshold">
               <property name="text">
                <string>Train Threshold</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_Calibrate">
+              <property name="text">
+               <string>Calibrate</string>
               </property>
              </widget>
             </item>
@@ -224,6 +231,20 @@
              </widget>
             </item>
             <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Last Spring Measurement</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_SpringDiameter">
+              <property name="text">
+               <string>Last Spring Measurement</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -286,7 +307,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QListView" name="listView_PreviousImages"/>
+           <widget class="QListWidget" name="listWidget_MeasurementImageHistory"/>
           </item>
          </layout>
         </item>

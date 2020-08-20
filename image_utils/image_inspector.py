@@ -4,16 +4,18 @@ import numpy as np
 
 import flir_camera_controller
 from json_settings import JsonSettings
+from image_utils.image_measurement import ImageMeasurement
 
 
 class ImageInspector(QObject):
     new_image_available: pyqtSignal = pyqtSignal()
+    new_measurement_available: pyqtSignal = pyqtSignal()
     inspection_alert: pyqtSignal = pyqtSignal(bool)
 
     def __init__(self, settings: dict):
         super(ImageInspector, self).__init__()
 
-        self.image_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
+        # self.image_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
         self.settings = JsonSettings()
 
         self.inspection_area = None
@@ -22,7 +24,7 @@ class ImageInspector(QObject):
         self.detection_img = None
         self.measurement_img = None
         self._settings = settings
-        self._resize_factor = .25
+        self._resize_factor = float(self.settings.get_value('spring_finder.resize_factor', .25))
         self._resize_image_width = 0
         self._resize_image_height = 0
         self._current_image = None
@@ -31,8 +33,9 @@ class ImageInspector(QObject):
         self._threshold_value = float(self.settings.get_value('spring_finder.threshold_value', .20))
         self.current_threshold_value = 0
         self._morph_kernel_size = int(self.settings.get_value('spring_finder.morph_kernel_size', 5))
-        self._inspection_alert_value = False
+        self._inspection_alert_value = None
         self._setting_inspection_area = False
+        self.spring_diameter = 0
 
         self._temp_x1 = 0
         self._temp_x2 = 0
@@ -60,10 +63,11 @@ class ImageInspector(QObject):
 
     @property
     def resize_factor(self):
-        return self.settings.get_value('spring_finder/resize_factor', .25)
+        return self._resize_factor
 
     @resize_factor.setter
     def resize_factor(self, value):
+        self._resize_factor = value
         self.settings.set_value('spring_finder.resize_factor', float(value))
 
     @property
@@ -120,6 +124,8 @@ class ImageInspector(QObject):
         if value != self.inspection_alert_value:
             self._inspection_alert_value = value
             self.inspection_alert.emit(value)
+            if value:
+                self._measure_spring()
 
     @property
     def inspection_points(self):
@@ -192,8 +198,8 @@ class ImageInspector(QObject):
         self.current_image = _img
         self.new_image_available.emit()
 
-        if self.current_threshold_value > (float(self.threshold_value) * 0.9):
-            # check for 90% of threshold value to indicate spring found
+        if self.current_threshold_value > (float(self.threshold_value) * 0.93):
+            # check for 93% of threshold value to indicate spring found
             self.inspection_alert_value = True
         else:
             self.inspection_alert_value = False
@@ -205,8 +211,6 @@ class ImageInspector(QObject):
         try:
             img = self.inspection_area
             img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-            # cv.imshow('t', img)
-            # cv.waitKey(0)
         except cv.error:
             return
 
@@ -223,57 +227,6 @@ class ImageInspector(QObject):
         max_pix = img.shape[0] * img.shape[1]
         self.current_threshold_value = (cv.countNonZero(img) / max_pix)
         self.detection_img = img
-
-        # move measurement to trigger when spring found
-        if self.current_threshold_value > (float(self.threshold_value) * 0.9):
-            self._measure_spring_end()
-
-    def _measure_spring_end(self):
-        raw_img = self.inspection_area
-        img = cv.cvtColor(self.inspection_area, cv.COLOR_BGR2GRAY)
-        img = cv.medianBlur(img, 5)
-        r, img = cv.threshold(img, self.inspection_threshold_value, 255, cv.THRESH_BINARY_INV)
-        cnt, h = cv.findContours(img, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
-
-        if len(cnt) < 1:
-            self.inspection_area = raw_img
-            self.measurement_img = img
-            return
-
-        max_area, max_cont = 0, None
-
-        for c in cnt:
-            if cv.contourArea(c) > max_area:
-                max_area = cv.contourArea(c)
-                max_cont = c
-
-        try:
-            cv.drawContours(raw_img, [max_cont], 0, (0, 0, 0), 1)
-            cv.drawContours(img, [max_cont], 0, (0, 0, 0), 1)
-
-            max_x_point = max_cont[0][0][0]
-            min_x_point = max_cont[0][0][0]
-            y_max = raw_img.shape[0]
-
-            for pt in max_cont:
-                pt_x = pt[0][0]
-                if pt_x > max_x_point:
-                    max_x_point = pt_x
-                elif pt_x <= min_x_point:
-                    min_x_point = pt_x
-
-            print(f'max x: {max_x_point}, min x: {min_x_point}')
-
-            cv.line(raw_img, (max_x_point, 0), (max_x_point, y_max), (255, 0, 255), 2)
-            cv.line(raw_img, (min_x_point, 0), (min_x_point, y_max), (0, 255, 0), 2)
-            cv.line(raw_img, (max_x_point, int(y_max/2)), (min_x_point, int(y_max/2)), (255, 0, 0), 2)
-
-        except (cv.error, SystemError):
-            print('error')
-
-        self.inspection_area = raw_img
-        self.measurement_img = img
-        print('')
 
     def set_threshold_value(self):
         self.threshold_value = self.current_threshold_value
@@ -306,21 +259,20 @@ class ImageInspector(QObject):
             self.inspection_pt1_y = min(self._temp_y1, self._temp_y2)
             self.inspection_pt2_y = max(self._temp_y1, self._temp_y2)
 
-            # self.image_settings.setValue('image/inspection_pt1_x', self._inspection_pt1_x)
-            # self.image_settings.setValue('image/inspection_pt1_y', self._inspection_pt1_y)
-            # self.image_settings.setValue('image/inspection_pt2_x', self._inspection_pt2_x)
-            # self.image_settings.setValue('image/inspection_pt2_y', self._inspection_pt2_y)
-        #     self.settings.set_value('spring_finder.inspection_pt1_x', self._inspection_pt1_x)
-        #     self.settings.set_value('spring_finder.inspection_pt1_y', self._inspection_pt1_y)
-        #     self.settings.set_value('')
-        # self._inspection_pt1_x = self.settings.get_value('spring_finder.inspection_pt1_x', int(310 * 4))
-        # self._inspection_pt1_y = self.settings.get_value('spring_finder.inspection_pt1_y', int(470 * 4))
-        # self._inspection_pt2_x = self.settings.get_value('spring_finder.inspection_pt2_x', int(340 * 4))
-        # self._inspection_pt2_y = self.settings.get_value('spring_finder.inspection_pt2_y', int(540 * 4))
-
             self._setting_point = 0
             self._temp_x1 = 0
             self._temp_x2 = 0
             self._temp_y1 = 0
             self._temp_y2 = 0
             self._setting_inspection_area = False
+
+    def _measure_spring(self):
+        img_meas = ImageMeasurement(self.inspection_area)
+        img_meas.finished_measurement.connect(self.measurement_complete)
+
+    def measurement_complete(self, img_obj):
+        self.measurement_img = img_obj.final_image
+        self.spring_diameter = img_obj.spring_diameter_inch
+        self.new_measurement_available.emit()
+        # save image to file for future use
+        # record measurment data for charting

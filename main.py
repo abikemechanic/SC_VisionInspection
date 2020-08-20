@@ -1,14 +1,11 @@
 from PyQt5 import QtWidgets
 import sys
-from PIL import Image
 import cv2 as cv
 import numpy as np
 import time
-import datetime
-import pytesseract
 import UI.main_window
 
-from image_inspector import ImageInspector as Camera
+from image_utils.image_inspector import ImageInspector as Camera
 
 main_prog = 1
 
