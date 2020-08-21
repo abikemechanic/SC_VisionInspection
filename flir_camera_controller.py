@@ -1,4 +1,4 @@
-from simple_pyspin import Camera
+from simple_pyspin import Camera, CameraError
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QSettings
 import time
 
@@ -21,22 +21,15 @@ class CameraController(QThread):
         self.cam_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
         self.settings = JsonSettings()
 
+        self._cam_width = int(self.settings.get_value('camera.width', 1200))
+        self._cam_height = int(self.settings.get_value('camera.height', 600))
+        self._x_offset = int(self.settings.get_value('camera.x_offset', 800))
+        self._y_offset = int(self.settings.get_value('camera.y_offset', 700))
+        self._pixel_format = self.settings.get_value('camera.pixel_format', 'Mono8')
+
         # Camera setup
         self.cam.init()
-        #
-        # self.cam.Width = self.cam_width
-        # self.cam.Height = self.cam_height
-        # self.cam.OffsetX = 0
-        # self.cam.OffsetY = 0
-
-        self.cam.GainAuto = 'Off'
-        self.cam.Gain = 9
-        self.cam.ExposureAuto = 'Off'
-        self.cam.ExposureTime = 10000
-
-        if 'Bayer' in self.cam.PixelFormat:
-            self.cam.PixelFormat = 'BGR8'
-
+        self._init_camera()
         self.cam.start()
 
     # region Properties
@@ -52,25 +45,63 @@ class CameraController(QThread):
 
     @property
     def cam_width(self):
-        # return self.cam_settings.value('cam/width', 4000)
-        return self.settings.get_value('camera.width', 4000)
+        return self._cam_width
 
     @cam_width.setter
     def cam_width(self, value):
-        # self.cam_settings.setValue('cam/width', int(value))
         self.settings.set_value('camera.width', int(value))
 
     @property
     def cam_height(self):
-        # return self.cam_settings.value('cam/height', 2000)
-        self.settings.get_value('camera.height', 2000)
+        return self._cam_height
 
     @cam_height.setter
     def cam_height(self, value):
-        # self.cam_settings.setValue('cam/height', int(value))
         self.settings.set_value('camera.height', int(value))
 
+    @property
+    def x_offset(self):
+        return self._x_offset
+
+    @x_offset.setter
+    def x_offset(self, value):
+        self.settings.set_value('camera.x_offset', int(value))
+
+    @property
+    def y_offset(self):
+        return self._y_offset
+
+    @y_offset.setter
+    def y_offset(self, value):
+        self.settings.set_value('camera.y_offset', int(value))
+
+    @property
+    def pixel_format(self):
+        return self._pixel_format
+
+    @pixel_format.setter
+    def pixel_format(self, value):
+        self.settings.set_value('camera.pixel_format', value)
+
     # endregion
+
+    def _init_camera(self):
+        try:
+            self.cam.Width = self.cam_width
+            self.cam.Height = self.cam_height
+            self.cam.OffsetX = self.x_offset
+            self.cam.OffsetY = self.y_offset
+
+            self.cam.GainAuto = 'Off'
+            self.cam.Gain = 9
+            self.cam.ExposureAuto = 'Off'
+            self.cam.ExposureTime = 10000
+            self.cam.PixelFormat = self.pixel_format
+        except CameraError as ex:
+            print(ex)
+            self.cam.start()
+            self.cam.stop()
+            self._init_camera()
 
     def get_next_image(self):
         return self.cam.get_array()

@@ -5,3 +5,4 @@ pyqt5~=5.15.0
 pywinusb~=0.4.2
 Pillow~=7.2.0
 numpy~=1.19.0
+simple-pyspin

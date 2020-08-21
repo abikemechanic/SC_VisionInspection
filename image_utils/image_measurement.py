@@ -20,7 +20,7 @@ class ImageMeasurement(QThread):
 
         self._transform_threshold = int(self.settings.get_value('spring_measure.transform_threshold', 120))
         self._blur_kernel_size = int(self.settings.get_value('spring_measure.blur_kernel_size', 5))
-        self._pixel_per_inch = int(self.settings.get_value('spring_measure.pixels_per_inch', int(181 / .170)))
+        self._pixel_per_inch = int(self.settings.get_value('spring_measure.pixels_per_inch', int(431 / .170)))
         # width in pixels / width in inches
         self._calibration_date = self.settings.get_value('spring_measure.calibration_date', '01/01/2000')
 
