@@ -1,26 +1,30 @@
 {
     "spring_finder": {
         "inspection_threshold_value": "178",
-        "threshold_value": "0.2588434022257552",
+        "threshold_value": "0.5045273923522897",
         "morph_kernel_size": "5",
         "vert_size": "7",
-        "inspection_pt1_x": "100",
-        "inspection_pt1_y": "106",
-        "inspection_pt2_x": "474",
-        "inspection_pt2_y": "698",
+        "inspection_pt1_x": "93",
+        "inspection_pt1_y": "166",
+        "inspection_pt2_x": "501",
+        "inspection_pt2_y": "768",
         "resize_factor": ".75"
     },
     "spring_measure": {
-        "transform_threshold": "174",
+        "transform_threshold": "155",
         "blur_kernel_size": "5",
         "calibration_date": "01/01/2000",
-        "pixels_per_inch": "2535"
+        "pixels_per_inch": "2552"
     },
     "camera": {
         "width": "1200",
         "height": "600",
-        "x_offset": "800",
-        "y_offset": "700",
-        "pixel_format": "BGR8"
+        "x_offset": "1400",
+        "y_offset": "1200",
+        "pixel_format": "BGR8",
+        "exposure_auto": "Off",
+        "exposure_time": "3800",
+        "gain_auto": "Off",
+        "gain": "9"
     }
 }

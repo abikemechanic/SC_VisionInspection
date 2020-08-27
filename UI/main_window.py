@@ -72,7 +72,8 @@ class MainWindow(QMainWindow):
 
     def on_new_measurement(self):
         pil_meas = Image.fromarray(self.camera.measurement_img)
-        self.lbl_InspectionFeed.setPixmap(pil_meas.toqpixmap().scaledToWidth(self.lbl_InspectionFeed.width()))
+        # self.lbl_InspectionFeed.setPixmap(pil_meas.toqpixmap().scaledToHeight(self.lbl_InspectionFeed.height()))
+        self.lbl_InspectionFeed.setPixmap(pil_meas.toqpixmap())
 
         self.label_SpringDiameter.setText('{:4.5f}'.format(self.camera.spring_diameter))
 

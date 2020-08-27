@@ -25,7 +25,11 @@ class CameraController(QThread):
         self._cam_height = int(self.settings.get_value('camera.height', 600))
         self._x_offset = int(self.settings.get_value('camera.x_offset', 800))
         self._y_offset = int(self.settings.get_value('camera.y_offset', 700))
-        self._pixel_format = self.settings.get_value('camera.pixel_format', 'Mono8')
+        self._pixel_format = self.settings.get_value('camera.pixel_format', 'BGR8')
+        self._exposure_auto = self.settings.get_value('camera.exposure_auto', 'Off')
+        self._exposure_time = int(self.settings.get_value('camera.exposure_time', 2000))
+        self._gain_auto = self.settings.get_value('camera.gain_auto', 'Off')
+        self._gain = int(self.settings.get_value('camera.gain', 9))
 
         # Camera setup
         self.cam.init()
@@ -83,6 +87,42 @@ class CameraController(QThread):
     def pixel_format(self, value):
         self.settings.set_value('camera.pixel_format', value)
 
+    @property
+    def exposure_auto(self):
+        return self._exposure_auto
+
+    @exposure_auto.setter
+    def exposure_auto(self, value):
+        self.settings.set_value('camera.exposure_auto', value)
+        self._exposure_auto = value
+
+    @property
+    def exposure_time(self):
+        return self._exposure_time
+
+    @exposure_time.setter
+    def exposure_time(self, value):
+        self.settings.set_value('camera.exposure_time', int(value))
+        self._exposure_time = value
+
+    @property
+    def gain_auto(self):
+        return self._gain_auto
+
+    @gain_auto.setter
+    def gain_auto(self, value):
+        self.settings.set_value('camera.gain_auto', value)
+        self._gain_auto = value
+
+    @property
+    def gain(self):
+        return self._gain
+
+    @gain.setter
+    def gain(self, value):
+        self.settings.set_value('camera.gain', int(value))
+        self._gain = value
+
     # endregion
 
     def _init_camera(self):
@@ -94,8 +134,10 @@ class CameraController(QThread):
 
             self.cam.GainAuto = 'Off'
             self.cam.Gain = 9
-            self.cam.ExposureAuto = 'Off'
-            self.cam.ExposureTime = 10000
+            self.cam.ExposureAuto = self.exposure_auto
+            self.cam.ExposureTime = self.exposure_time
+            self.cam.GainAuto = self.gain_auto
+            self.cam.Gain = self.gain
             self.cam.PixelFormat = self.pixel_format
         except CameraError as ex:
             print(ex)

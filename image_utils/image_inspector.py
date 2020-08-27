@@ -14,8 +14,6 @@ class ImageInspector(QObject):
 
     def __init__(self, settings: dict):
         super(ImageInspector, self).__init__()
-
-        # self.image_settings = QSettings('Motion Dynamics', 'SC Vision Inspection')
         self.settings = JsonSettings()
 
         self.inspection_area = None

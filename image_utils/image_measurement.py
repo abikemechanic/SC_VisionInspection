@@ -20,7 +20,7 @@ class ImageMeasurement(QThread):
 
         self._transform_threshold = int(self.settings.get_value('spring_measure.transform_threshold', 120))
         self._blur_kernel_size = int(self.settings.get_value('spring_measure.blur_kernel_size', 5))
-        self._pixel_per_inch = int(self.settings.get_value('spring_measure.pixels_per_inch', int(431 / .170)))
+        self._pixel_per_inch = int(self.settings.get_value('spring_measure.pixels_per_inch', int(434 / .170)))
         # width in pixels / width in inches
         self._calibration_date = self.settings.get_value('spring_measure.calibration_date', '01/01/2000')
 
@@ -75,6 +75,12 @@ class ImageMeasurement(QThread):
         img = cv.cvtColor(self.raw_image, cv.COLOR_BGR2GRAY)
         img = cv.medianBlur(img, self._blur_kernel_size)
         r, img = cv.threshold(img, self._transform_threshold, 255, cv.THRESH_BINARY_INV)
+
+        ero_kern = np.ones((3, 3), np.uint8)
+        dil_kern = np.ones((3, 3), np.uint8)
+        img = cv.erode(img, ero_kern, iterations=1)
+        img = cv.dilate(img, dil_kern, iterations=1)
+
         cnt, h = cv.findContours(img, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
 
         if len(cnt) < 1:
@@ -83,25 +89,45 @@ class ImageMeasurement(QThread):
         max_area, max_cont = 0, None
 
         for c in cnt:
+            # cv.drawContours(self.raw_image, [c], 0, (0, 0, 0), 1)
             if cv.contourArea(c) > max_area:
                 max_area = cv.contourArea(c)
                 max_cont = c
 
         try:
-            cv.drawContours(self.raw_image, [max_cont], 0, (0, 0, 0), 2)
+            canny_img = cv.Canny(self.raw_image, 100, 200, 5)
+            canny_img = cv.cvtColor(canny_img, cv.COLOR_GRAY2BGR)
+            cv.drawContours(self.raw_image, [max_cont], 0, (255, 255, 255), 1)
+
+            contour_img = np.zeros((self.raw_image.shape[0], self.raw_image.shape[1]), np.uint8)
+            cv.drawContours(contour_img, [max_cont], 0, (255, 255, 255), cv.FILLED)
+            # self.get_od_along_contour(contour_img, max_cont)
 
             self.max_x_point = max_cont[0][0][0]
             self.min_x_point = max_cont[0][0][0]
+            self.min_y_point = max_cont[0][0][1]
+            self.max_x_y_point = 0
+            self.min_x_y_point = 0
             y_max = img.shape[0]
 
             for pt in max_cont:
                 pt_x = pt[0][0]
+                pt_y = pt[0][1]
                 self.max_x_point = max(pt_x, self.max_x_point)
                 self.min_x_point = min(pt_x, self.min_x_point)
 
-            cv.line(self.raw_image, (self.max_x_point, 0), (self.max_x_point, y_max), (0, 0, 255), 1)
-            cv.line(self.raw_image, (self.min_x_point, 0), (self.min_x_point, y_max), (0, 0, 255), 1)
-            cv.line(self.raw_image, (self.max_x_point, int(y_max / 2)), (self.min_x_point, int(y_max / 2)), (0, 255, 0), 1)
+                if self.max_x_point == pt_x:
+                    self.max_x_y_point = pt[0][1]
+                elif self.min_x_point == pt_x:
+                    self.min_x_y_point = pt[0][1]
+
+            # cv.line(self.raw_image, (self.max_x_point, 0), (self.max_x_point, y_max), (0, 0, 255), 3)
+            # cv.line(self.raw_image, (self.min_x_point, 0), (self.min_x_point, y_max), (0, 0, 255), 3)
+            cv.line(self.raw_image, (self.max_x_point, int(y_max / 2)), (self.min_x_point, int(y_max / 2)),
+                    (255, 255, 255), 3)
+
+            cv.circle(self.raw_image, (self.max_x_point, self.max_x_y_point), 5, (0, 102, 255), -1)
+            cv.circle(self.raw_image, (self.min_x_point, self.min_x_y_point), 5, (0, 102, 255), -1)
 
             self.x_difference = self.max_x_point - self.min_x_point
             self.spring_diameter_inch = 1 / (self._pixel_per_inch * 1 / self.x_difference)
@@ -110,3 +136,32 @@ class ImageMeasurement(QThread):
 
         except (cv.error, SystemError):
             raise AttributeError('Cannot Define Contour Of Image')
+
+    def get_od_along_contour(self, contour_image, contour):
+        # cv.imshow('contour_image', contour_image)
+        # cv.waitKey(0)
+        # print(contour_image.shape)
+
+        x_dim = contour_image.shape[1]
+        y_dim = contour_image.shape[0]
+
+        cur_pixel = contour_image[0][0]
+        last_pixel = contour_image[0][0]
+
+        for y in range(y_dim):
+            contour_begin = 0
+            contour_end = 0
+            in_contour = False
+
+            for x in range(x_dim):
+                cur_pixel = contour_image[y][x]
+
+                if cur_pixel != last_pixel and not in_contour:
+                    contour_begin = x
+                    in_contour = True
+                elif cur_pixel >= 255 and in_contour:
+                    contour_end = x
+
+                last_pixel = cur_pixel
+
+            print(f'Contour Width at {y} = ' + str(contour_end - contour_begin))
