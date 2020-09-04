@@ -108,3 +108,4 @@ class MainWindow(QMainWindow):
         y = event.pos().y()
 
         self.camera.set_inspection_point(x, y)
+2

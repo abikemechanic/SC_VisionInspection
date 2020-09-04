@@ -20,7 +20,7 @@ class ImageMeasurement(QThread):
 
         self._transform_threshold = int(self.settings.get_value('spring_measure.transform_threshold', 120))
         self._blur_kernel_size = int(self.settings.get_value('spring_measure.blur_kernel_size', 5))
-        self._pixel_per_inch = int(self.settings.get_value('spring_measure.pixels_per_inch', int(434 / .170)))
+        self._pixel_per_inch = int(self.settings.get_value('spring_measure.pixels_per_inch', int(495 / (3/16))))
         # width in pixels / width in inches
         self._calibration_date = self.settings.get_value('spring_measure.calibration_date', '01/01/2000')
 
@@ -108,6 +108,7 @@ class ImageMeasurement(QThread):
             self.min_y_point = max_cont[0][0][1]
             self.max_x_y_point = 0
             self.min_x_y_point = 0
+            max_y_point = 0
             y_max = img.shape[0]
 
             for pt in max_cont:
@@ -121,6 +122,9 @@ class ImageMeasurement(QThread):
                 elif self.min_x_point == pt_x:
                     self.min_x_y_point = pt[0][1]
 
+                if pt_y > max_y_point:
+                    max_y_point = pt_y
+
             # cv.line(self.raw_image, (self.max_x_point, 0), (self.max_x_point, y_max), (0, 0, 255), 3)
             # cv.line(self.raw_image, (self.min_x_point, 0), (self.min_x_point, y_max), (0, 0, 255), 3)
             cv.line(self.raw_image, (self.max_x_point, int(y_max / 2)), (self.min_x_point, int(y_max / 2)),
@@ -133,6 +137,8 @@ class ImageMeasurement(QThread):
             self.spring_diameter_inch = 1 / (self._pixel_per_inch * 1 / self.x_difference)
             self.final_image = self.raw_image
             print(self.x_difference)
+            print(max_y_point)
+            print('')
 
         except (cv.error, SystemError):
             raise AttributeError('Cannot Define Contour Of Image')
