@@ -4,7 +4,7 @@ import os
 
 class JsonSettings:
     file_path = ''
-    file_name = 'SC_Vision_Inspection.json'
+    file_name = 'SC_Vision_Inspection_.json'
 
     def _load_file(self):
         try:

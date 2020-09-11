@@ -11,10 +11,10 @@ class CameraController(QThread):
 
     settings_directory = ''
 
-    def __init__(self):
+    def __init__(self, camera_index=0):
         super(CameraController, self).__init__()
 
-        self.cam = Camera(index=0)
+        self.cam = Camera(index=camera_index)
         self.end_camera = False
         self._current_image = None
 
