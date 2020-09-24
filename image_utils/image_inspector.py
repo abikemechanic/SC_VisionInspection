@@ -123,7 +123,7 @@ class ImageInspector(QObject):
             self._inspection_alert_value = value
             self.inspection_alert.emit(value)
             if value:
-                self._measure_spring()
+                self.measure_spring()
 
     @property
     def inspection_points(self):
@@ -264,7 +264,7 @@ class ImageInspector(QObject):
             self._temp_y2 = 0
             self._setting_inspection_area = False
 
-    def _measure_spring(self):
+    def measure_spring(self):
         img_meas = ImageMeasurement(self.inspection_area)
         img_meas.finished_measurement.connect(self.measurement_complete)
 

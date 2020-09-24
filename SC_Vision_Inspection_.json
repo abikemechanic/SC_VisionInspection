@@ -1,13 +1,13 @@
 {
     "spring_finder": {
         "inspection_threshold_value": "178",
-        "threshold_value": "0.9804574638844302",
+        "threshold_value": "0.8392671934806766",
         "morph_kernel_size": "5",
         "vert_size": "7",
-        "inspection_pt1_x": "41",
-        "inspection_pt1_y": "148",
-        "inspection_pt2_x": "496",
-        "inspection_pt2_y": "860",
+        "inspection_pt1_x": "66",
+        "inspection_pt1_y": "66",
+        "inspection_pt2_x": "526",
+        "inspection_pt2_y": "774",
         "resize_factor": ".75"
     },
     "spring_measure": {

@@ -201,5 +201,5 @@ fabric.properties
 .idea
 *.autosave
 *.xml
-spinnaker_python-2.0.0.147-cp38-cp38-win32.whl
+blackfly_camera/spinnaker_python-2.0.0.147-cp38-cp38-win32.whl
 .idea/misc.xml

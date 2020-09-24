@@ -106,6 +106,13 @@
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="btn_StartInspection">
+               <property name="text">
+                <string notr="true">Start Inspection</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="Line" name="line_3">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>

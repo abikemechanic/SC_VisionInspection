@@ -76,10 +76,10 @@ class ImageMeasurement(QThread):
         img = cv.medianBlur(img, self._blur_kernel_size)
         r, img = cv.threshold(img, self._transform_threshold, 255, cv.THRESH_BINARY_INV)
 
-        ero_kern = np.ones((3, 3), np.uint8)
-        dil_kern = np.ones((3, 3), np.uint8)
-        img = cv.erode(img, ero_kern, iterations=1)
-        img = cv.dilate(img, dil_kern, iterations=1)
+        erosion_kernel = np.ones((3, 3), np.uint8)
+        dilation_kernel = np.ones((3, 3), np.uint8)
+        img = cv.erode(img, erosion_kernel, iterations=1)
+        img = cv.dilate(img, dilation_kernel, iterations=1)
 
         cnt, h = cv.findContours(img, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
 
@@ -89,7 +89,6 @@ class ImageMeasurement(QThread):
         max_area, max_cont = 0, None
 
         for c in cnt:
-            # cv.drawContours(self.raw_image, [c], 0, (0, 0, 0), 1)
             if cv.contourArea(c) > max_area:
                 max_area = cv.contourArea(c)
                 max_cont = c
@@ -171,3 +170,9 @@ class ImageMeasurement(QThread):
                 last_pixel = cur_pixel
 
             print(f'Contour Width at {y} = ' + str(contour_end - contour_begin))
+
+    def get_inflection_points(self, contour_image, contour):
+        x_dim = contour_image.shape[1]
+        y_dim = contour_image.shape[0]
+
+

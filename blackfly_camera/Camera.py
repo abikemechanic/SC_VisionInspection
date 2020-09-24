@@ -3,4 +3,6 @@ import time
 
 
 class Camera:
-    pass
+
+    def __init__(self, camera_index=0):
+        pass

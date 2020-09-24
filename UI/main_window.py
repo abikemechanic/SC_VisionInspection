@@ -43,6 +43,9 @@ class MainWindow(QMainWindow):
         self.btn_SetInspectionArea: QPushButton = self.btn_SetInspectionArea
         self.btn_SetInspectionArea.clicked.connect(self.set_inspection_area)
 
+        self.btn_StartInspection: QPushButton = self.btn_StartInspection
+        self.btn_StartInspection.clicked.connect(self.start_inspection)
+
         self.label_ThresholdLevel: QLabel = self.label_ThresholdLevel
         self.label_Notifier: QLabel = self.label_Notifier
         self.label_SpringDiameter: QLabel = self.label_SpringDiameter
@@ -94,6 +97,9 @@ class MainWindow(QMainWindow):
 
     def set_inspection_area(self):
         self.camera.set_inspection_area()
+
+    def start_inspection(self):
+        self.camera.measure_spring()
 
     def inspection_alert(self, signal):
         if signal:
